@@ -80,10 +80,7 @@ class WheelInfo:
     def is_compatible(self):
         if self.filename.endswith("py3-none-any.whl"):
             return True
-        for tag in sys_tags():
-            if tag in self.tags:
-                return True
-        return False
+        return any(tag in self.tags for tag in sys_tags())
 
     async def download(self, fetch_kwargs):
         try:
@@ -238,9 +235,9 @@ class Transaction:
         self,
         requirements: list[str],
     ) -> None:
-        requirement_promises = []
-        for requirement in requirements:
-            requirement_promises.append(self.add_requirement(requirement))
+        requirement_promises = [
+            self.add_requirement(requirement) for requirement in requirements
+        ]
 
         await gather(*requirement_promises)
 
@@ -453,7 +450,7 @@ async def install(
     if isinstance(requirements, str):
         requirements = [requirements]
 
-    fetch_kwargs = dict()
+    fetch_kwargs = {}
 
     if credentials:
         fetch_kwargs["credentials"] = credentials
@@ -497,10 +494,9 @@ async def install(
         )
 
     # Now install PyPI packages
-    for wheel in transaction.wheels:
-        # detect whether the wheel metadata is from PyPI or from custom location
-        # wheel metadata from PyPI has SHA256 checksum digest.
-        wheel_promises.append(wheel.install(wheel_base))
+    wheel_promises.extend(
+        wheel.install(wheel_base) for wheel in transaction.wheels
+    )
 
     await gather(*wheel_promises)
 
@@ -535,8 +531,7 @@ def freeze() -> str:
         sha256 = dist.read_text("PYODIDE_SHA256")
         assert sha256
         imports = (dist.read_text("top_level.txt") or "").split()
-        requires = dist.read_text("PYODIDE_REQUIRES")
-        if requires:
+        if requires := dist.read_text("PYODIDE_REQUIRES"):
             depends = json.loads(requires)
         else:
             depends = []

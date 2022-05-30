@@ -96,11 +96,14 @@ def pytest_runtest_call(item):
     Pytest issue #5044:
     https://github.com/pytest-dev/pytest/issues/5044
     """
-    browser = None
-    for fixture in item._fixtureinfo.argnames:
-        if fixture.startswith("selenium"):
-            browser = item.funcargs[fixture]
-            break
+    browser = next(
+        (
+            item.funcargs[fixture]
+            for fixture in item._fixtureinfo.argnames
+            if fixture.startswith("selenium")
+        ),
+        None,
+    )
 
     if not browser:
         yield

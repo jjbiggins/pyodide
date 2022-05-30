@@ -10,9 +10,11 @@ fig, ax = plt.subplots(constrained_layout=True, figsize=(8, 8))
 with open(sys.argv[-2]) as fp:
     content = json.load(fp)
 
-results = []
-for k, v in content.items():
-    results.append((k, v["firefox"] / v["native"], v["chrome"] / v["native"]))
+results = [
+    (k, v["firefox"] / v["native"], v["chrome"] / v["native"])
+    for k, v in content.items()
+]
+
 results.sort(key=lambda x: x[1], reverse=True)
 
 names = [x[0] for x in results]

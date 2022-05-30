@@ -342,8 +342,7 @@ class Console:
         def done_cb(fut):
             nonlocal res
             assert res is not None
-            exc = fut.exception()
-            if exc:
+            if exc := fut.exception():
                 res.formatted_error = self.formattraceback(exc)
                 res.set_exception(exc)
                 exc = None

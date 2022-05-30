@@ -10,15 +10,15 @@ from pyodide import CodeRunner, eval_code, find_imports, should_quiet  # noqa: E
 
 def _strip_assertions_stderr(messages: Sequence[str]) -> list[str]:
     """Strip additional messages on stderr included when ASSERTIONS=1"""
-    res = []
-    for msg in messages:
-        if msg.strip() in [
+    return [
+        msg
+        for msg in messages
+        if msg.strip()
+        not in [
             "sigaction: signal type not supported: this is a no-op.",
             "Calling stub instead of siginterrupt()",
-        ]:
-            continue
-        res.append(msg)
-    return res
+        ]
+    ]
 
 
 def test_find_imports():
@@ -345,7 +345,7 @@ def test_hiwire_is_promise(selenium):
             f"return pyodide._module.hiwire.isPromise({s}) === false;"
         )
 
-    if not selenium.browser == "node":
+    if selenium.browser != "node":
         assert selenium.run_js(
             "return pyodide._module.hiwire.isPromise(document.all) === false;"
         )

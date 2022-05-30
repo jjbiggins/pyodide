@@ -8,7 +8,7 @@ args = sys.argv[1:]
 
 def remove_num_threads_option(args: list[str]) -> None:
     """Remove -n <n> from argument list"""
-    for i in range(0, len(args)):
+    for i in range(len(args)):
         if args[i] == "-n":
             del args[i : i + 2]
             break
@@ -23,7 +23,7 @@ if __name__ == "__main__":
 
     # Failed tests. Look up number of failed tests
     with open(".pytest_cache/v/cache/lastfailed") as f:
-        num_failed = sum(1 for line in f) - 2
+        num_failed = sum(1 for _ in f) - 2
 
     if num_failed > 9:
         print("More than 9 tests failed. Not rerunning")

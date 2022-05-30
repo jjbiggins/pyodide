@@ -39,16 +39,20 @@ def should_quiet(source: str) -> bool:
     source_io = StringIO(source)
     tokens = list(tokenize.generate_tokens(source_io.readline))
 
-    for token in reversed(tokens):
-        if token.type in (
-            tokenize.ENDMARKER,
-            tokenize.NL,  # ignoring empty lines (\n\n)
-            tokenize.NEWLINE,
-            tokenize.COMMENT,
-        ):
-            continue
-        return (token.type == tokenize.OP) and (token.string == ";")
-    return False
+    return next(
+        (
+            (token.type == tokenize.OP) and (token.string == ";")
+            for token in reversed(tokens)
+            if token.type
+            not in (
+                tokenize.ENDMARKER,
+                tokenize.NL,  # ignoring empty lines (\n\n)
+                tokenize.NEWLINE,
+                tokenize.COMMENT,
+            )
+        ),
+        False,
+    )
 
 
 def _last_assign_to_expr(mod: ast.Module) -> None:
@@ -297,8 +301,7 @@ class CodeRunner:
         if self.code is None:
             return None
         try:
-            coroutine = eval(self.code, globals, locals)
-            if coroutine:
+            if coroutine := eval(self.code, globals, locals):
                 raise RuntimeError(
                     "Used eval_code with TOP_LEVEL_AWAIT. Use run_async for this instead."
                 )
@@ -350,8 +353,7 @@ class CodeRunner:
         if self.code is None:
             return
         try:
-            coroutine = eval(self.code, globals, locals)
-            if coroutine:
+            if coroutine := eval(self.code, globals, locals):
                 await coroutine
         except EvalCodeResultException as e:
             return e.value

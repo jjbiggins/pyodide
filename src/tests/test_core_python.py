@@ -12,7 +12,7 @@ from pyodide_build.common import UNVENDORED_STDLIB_MODULES
 
 def filter_info(info: dict[str, Any], browser: str) -> dict[str, Any]:
     # keep only flags related to the current browser
-    suffix = "-" + browser
+    suffix = f"-{browser}"
     result = {key.removesuffix(suffix): value for key, value in info.items()}
     if "skip" in info and f"skip{suffix}" in info:
         result["skip"] = info["skip"] + info[f"skip{suffix}"]

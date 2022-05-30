@@ -46,9 +46,7 @@ PACKAGE_CONFIG_SPEC: dict[str, dict[str, Any]] = {
 
 
 def _check_config_keys(config: dict[str, Any]) -> Iterator[str]:
-    # Check top level sections
-    wrong_keys = set(config.keys()).difference(PACKAGE_CONFIG_SPEC.keys())
-    if wrong_keys:
+    if wrong_keys := set(config.keys()).difference(PACKAGE_CONFIG_SPEC.keys()):
         yield (
             f"Found unknown sections {list(wrong_keys)}. Expected "
             f"sections are {list(PACKAGE_CONFIG_SPEC)}."
@@ -62,14 +60,8 @@ def _check_config_keys(config: dict[str, Any]) -> Iterator[str]:
         actual_keys = set(config[section_key].keys())
         expected_keys = set(PACKAGE_CONFIG_SPEC[section_key].keys())
 
-        wrong_keys = set(actual_keys).difference(expected_keys)
-        if wrong_keys:
-            yield (
-                f"Found unknown keys "
-                f"{[section_key + '/' + key for key in wrong_keys]}. "
-                f"Expected keys are "
-                f"{[section_key + '/' + key for key in expected_keys]}."
-            )
+        if wrong_keys := set(actual_keys).difference(expected_keys):
+            yield f"Found unknown keys {[f'{section_key}/{key}' for key in wrong_keys]}. Expected keys are {[f'{section_key}/{key}' for key in expected_keys]}."
 
 
 def _check_config_types(config: dict[str, Any]) -> Iterator[str]:
@@ -105,16 +97,16 @@ def _check_config_source(config: dict[str, Any]) -> Iterator[str]:
         yield "Source section should have a 'url' or 'path' key"
         return
 
-    if in_tree and from_url:
-        yield "Source section should not have both a 'url' and a 'path' key"
-        return
+    if in_tree:
+        if from_url:
+            yield "Source section should not have both a 'url' and a 'path' key"
+            return
 
-    if in_tree and (patches or extras):
-        yield "If source is in tree, 'source/patches' and 'source/extras' keys are not allowed"
+        if (patches or extras):
+            yield "If source is in tree, 'source/patches' and 'source/extras' keys are not allowed"
 
-    if from_url:
-        if "sha256" not in src_metadata:
-            yield "If source is downloaded from url, it must have a 'source/sha256' hash."
+    if from_url and "sha256" not in src_metadata:
+        yield "If source is downloaded from url, it must have a 'source/sha256' hash."
 
 
 def _check_config_build(config: dict[str, Any]) -> Iterator[str]:
@@ -191,9 +183,7 @@ def check_package_config_generate_errors(
 def check_package_config(
     config: dict[str, Any], file_path: Path | str | None = None
 ) -> None:
-    errors_msg = list(check_package_config_generate_errors(config))
-
-    if errors_msg:
+    if errors_msg := list(check_package_config_generate_errors(config)):
         if file_path is None:
             file_path = Path("meta.yaml")
         raise ValueError(

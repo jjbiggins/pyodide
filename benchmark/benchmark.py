@@ -77,9 +77,8 @@ def parse_benchmark(filename):
     lines = []
     with open(filename) as fp:
         for line in fp:
-            m = re.match(r"^#\s*(setup|run): (.*)$", line)
-            if m:
-                line = f"{m.group(1)} = {m.group(2)!r}\n"
+            if m := re.match(r"^#\s*(setup|run): (.*)$", line):
+                line = f"{m[1]} = {m[2]!r}\n"
             lines.append(line)
     return "".join(lines)
 

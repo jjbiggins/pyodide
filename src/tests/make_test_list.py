@@ -40,11 +40,7 @@ def collect_tests(base_dir: Path) -> set[str]:
     for root, _dirs, files in os.walk(base_dir):
         root = str(Path(root).relative_to(base_dir))
 
-        if str(root) == ".":
-            root = ""
-        else:
-            root = ".".join(str(root).split("/")) + "."
-
+        root = "" if root == "." else ".".join(root.split("/")) + "."
         for filename in files:
             p = Path(filename)
             if filename.startswith("test_") and p.suffix == ".py":
@@ -54,11 +50,7 @@ def collect_tests(base_dir: Path) -> set[str]:
 
 
 def get_test_name(test: Any) -> str:
-    if isinstance(test, dict):
-        name = next(iter(test.keys()))
-    else:
-        name = test
-    return name
+    return next(iter(test.keys())) if isinstance(test, dict) else test
 
 
 def update_tests(doc_group, tests):

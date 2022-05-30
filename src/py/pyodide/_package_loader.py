@@ -17,7 +17,7 @@ SITE_PACKAGES = Path(getsitepackages()[0])
 STD_LIB = Path(sysconfig.get_path("stdlib"))
 TARGETS = {"site": SITE_PACKAGES, "lib": STD_LIB}
 ZIP_TYPES = {".whl", ".zip"}
-TAR_TYPES = {".tar", ".gz", ".bz", ".gz", ".tgz", ".bz2", ".tbz2"}
+TAR_TYPES = {".tar", ".bz", ".gz", ".tgz", ".bz2", ".tbz2"}
 EXTENSION_TAGS = [suffix.removesuffix(".so") for suffix in EXTENSION_SUFFIXES]
 # See PEP 3149. I think the situation has since been updated since PEP 3149 does
 # not talk about platform triples. But I could not find any newer pep discussing
@@ -106,7 +106,7 @@ def get_format(format: str) -> str:
             return fmt
         if format in extensions:
             return fmt
-        if "." + format in extensions:
+        if f".{format}" in extensions:
             return fmt
     raise ValueError(f"Unrecognized format {format}")
 
@@ -313,4 +313,4 @@ def sub_resource_hash(sha_256: str) -> str:
     'sha256-wNyG79oAYNQIQJipDskrPUqonX9+D7pUJFYdIUUeF1g='
     """
     binary_digest = binascii.unhexlify(sha_256)
-    return "sha256-" + base64.b64encode(binary_digest).decode()
+    return f"sha256-{base64.b64encode(binary_digest).decode()}"

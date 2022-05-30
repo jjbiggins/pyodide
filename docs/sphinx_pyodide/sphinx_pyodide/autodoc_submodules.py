@@ -26,7 +26,7 @@ def get_module_members(module: Any) -> list[tuple[str, Any]]:
                 continue
             submodule = value  # Rename for clarity
             [base, _, rest] = submodule.__name__.partition(".")
-            if not base == module.__name__:
+            if base != module.__name__:
                 # Not part of package, don't document
                 continue
 
@@ -34,7 +34,7 @@ def get_module_members(module: Any) -> list[tuple[str, Any]]:
                 # Skip names not in __all__
                 if hasattr(submodule, "__all__") and sub_name not in submodule.__all__:
                     continue
-                qual_name = rest + "." + sub_name
+                qual_name = f"{rest}.{sub_name}"
                 members[qual_name] = (qual_name, sub_val)
             continue
         except AttributeError:
@@ -58,15 +58,14 @@ def get_object_members(
         # for implicit module members, check __module__ to avoid
         # documenting imported objects
         return True, members
-    else:
-        ret = []
-        for name, value in members:
-            if name in self.__all__ or "." in name:
-                ret.append(ObjectMember(name, value))
-            else:
-                ret.append(ObjectMember(name, value, skipped=True))
+    ret = []
+    for name, value in members:
+        if name in self.__all__ or "." in name:
+            ret.append(ObjectMember(name, value))
+        else:
+            ret.append(ObjectMember(name, value, skipped=True))
 
-        return False, ret
+    return False, ret
 
 
 def monkeypatch_module_documenter():

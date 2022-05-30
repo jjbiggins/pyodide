@@ -35,8 +35,7 @@ def make_parser(parser):
 
 
 def server(port):
-    httpd = socketserver.TCPServer(("", port), Handler)
-    return httpd
+    return socketserver.TCPServer(("", port), Handler)
 
 
 def main(args):

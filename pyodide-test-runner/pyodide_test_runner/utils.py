@@ -29,10 +29,7 @@ def set_webdriver_script_timeout(selenium, script_timeout: float | None):
 def parse_driver_timeout(node) -> float | None:
     """Parse driver timeout value from pytest request object"""
     mark = node.get_closest_marker("driver_timeout")
-    if mark is None:
-        return None
-    else:
-        return mark.args[0]
+    return None if mark is None else mark.args[0]
 
 
 def parse_xfail_browsers(node) -> dict[str, str]:
@@ -50,12 +47,11 @@ def maybe_skip_test(item, dist_dir, delayed=False):
     browsers = "|".join(["firefox", "chrome", "node"])
 
     skip_msg = None
-    # Testing a package. Skip the test if the package is not built.
-    match = re.match(
-        r".*/packages/(?P<name>[\w\-]+)/test_[\w\-]+\.py", str(item.parent.fspath)
-    )
-    if match:
-        package_name = match.group("name")
+    if match := re.match(
+        r".*/packages/(?P<name>[\w\-]+)/test_[\w\-]+\.py",
+        str(item.parent.fspath),
+    ):
+        package_name = match["name"]
         if not package_is_built(package_name, dist_dir) and re.match(
             rf"test_[\w\-]+\[({browsers})\]", item.name
         ):
@@ -67,9 +63,10 @@ def maybe_skip_test(item, dist_dir, delayed=False):
         and str(item.fspath).endswith("test_packages_common.py")
         and item.name.startswith("test_import")
     ):
-        match = re.match(rf"test_import\[({browsers})-(?P<name>[\w-]+)\]", item.name)
-        if match:
-            package_name = match.group("name")
+        if match := re.match(
+            rf"test_import\[({browsers})-(?P<name>[\w-]+)\]", item.name
+        ):
+            package_name = match["name"]
             if not package_is_built(package_name, dist_dir):
                 # If the test is going to be skipped remove the
                 # selenium_standalone as it takes a long time to initialize

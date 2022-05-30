@@ -137,10 +137,9 @@ def generate_updated_content(
 
     # Some files only required to be bumped on core version release.
     # For example, we don't deploy prebuilt docker images for dev release.
-    if not target.prerelease:
-        if not is_core_version(new_version):
-            print(f"[*] {file}: Skipped (not targeting a core version)")
-            return None
+    if not target.prerelease and not is_core_version(new_version):
+        print(f"[*] {file}: Skipped (not targeting a core version)")
+        return None
 
     new_content = content
     startpos = 0

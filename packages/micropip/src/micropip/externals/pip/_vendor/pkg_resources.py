@@ -141,8 +141,7 @@ def yield_lines(strs):
                 yield s
     else:
         for ss in strs:
-            for s in yield_lines(ss):
-                yield s
+            yield from yield_lines(ss)
 
 
 def _remove_md5_fragment(location):
@@ -220,10 +219,11 @@ class Distribution:
         return self.hashcmp >= other.hashcmp
 
     def __eq__(self, other):
-        if not isinstance(other, self.__class__):
-            # It's not a Distribution, so they are not equal
-            return False
-        return self.hashcmp == other.hashcmp
+        return (
+            self.hashcmp == other.hashcmp
+            if isinstance(other, self.__class__)
+            else False
+        )
 
     def __ne__(self, other):
         return not self == other
@@ -255,9 +255,7 @@ class Distribution:
             version = self._get_version()
             if version is None:
                 path = self._get_metadata_path_for_display(self.PKG_INFO)
-                msg = ("Missing 'Version:' header and/or {} file at path: {}").format(
-                    self.PKG_INFO, path
-                )
+                msg = f"Missing 'Version:' header and/or {self.PKG_INFO} file at path: {path}"
                 raise ValueError(msg, self)
 
             return version
@@ -285,10 +283,9 @@ class Distribution:
             new_extra = extra
             reqs = dm.pop(extra)
             new_extra, _, marker = extra.partition(":")
-            fails_marker = marker and (
+            if fails_marker := marker and (
                 invalid_marker(marker) or not evaluate_marker(marker)
-            )
-            if fails_marker:
+            ):
                 reqs = []
             new_extra = safe_extra(new_extra) or None
 
@@ -333,20 +330,14 @@ class Distribution:
 
     def _get_metadata(self, name):
         if self.has_metadata(name):
-            for line in self.get_metadata_lines(name):
-                yield line
+            yield from self.get_metadata_lines(name)
 
     def _get_version(self):
         lines = self._get_metadata(self.PKG_INFO)
-        version = _version_from_file(lines)
-
-        return version
+        return _version_from_file(lines)
 
     def __repr__(self):
-        if self.location:
-            return "%s (%s)" % (self, self.location)
-        else:
-            return str(self)
+        return f"{self} ({self.location})" if self.location else str(self)
 
     def __str__(self):
         try:
@@ -354,7 +345,7 @@ class Distribution:
         except ValueError:
             version = None
         version = version or "[unknown version]"
-        return "%s %s" % (self.project_name, version)
+        return f"{self.project_name} {version}"
 
     def __getattr__(self, attr):
         """Delegate all unrecognized public attributes to .metadata provider"""
@@ -364,8 +355,14 @@ class Distribution:
 
     def __dir__(self):
         return list(
-            set(super(Distribution, self).__dir__())
-            | set(attr for attr in self._provider.__dir__() if not attr.startswith("_"))
+            (
+                set(super(Distribution, self).__dir__())
+                | {
+                    attr
+                    for attr in self._provider.__dir__()
+                    if not attr.startswith("_")
+                }
+            )
         )
 
     if not hasattr(object, "__dir__"):
@@ -516,13 +513,12 @@ def split_sections(s):
     content = []
     for line in yield_lines(s):
         if line.startswith("["):
-            if line.endswith("]"):
-                if section or content:
-                    yield section, content
-                section = line[1:-1].strip()
-                content = []
-            else:
+            if not line.endswith("]"):
                 raise ValueError("Invalid section heading", line)
+            if section or content:
+                yield section, content
+            section = line[1:-1].strip()
+            content = []
         else:
             content.append(line)
 

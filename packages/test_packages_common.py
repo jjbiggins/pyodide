@@ -12,11 +12,12 @@ PKG_DIR = ROOT_PATH / "packages"
 @functools.cache
 def registered_packages() -> list[str]:
     """Returns a list of registered package names"""
-    packages = []
-    for name in os.listdir(PKG_DIR):
-        if (PKG_DIR / name).is_dir() and (PKG_DIR / name / "meta.yaml").exists():
-            packages.append(name)
-    return packages
+    return [
+        name
+        for name in os.listdir(PKG_DIR)
+        if (PKG_DIR / name).is_dir()
+        and (PKG_DIR / name / "meta.yaml").exists()
+    ]
 
 
 UNSUPPORTED_PACKAGES: dict[str, list[str]] = {
@@ -54,10 +55,9 @@ def test_import(name, selenium_standalone):
 
     if name in UNSUPPORTED_PACKAGES[selenium_standalone.browser]:
         pytest.xfail(
-            "{} fails to load and is not supported on {}.".format(
-                name, selenium_standalone.browser
-            )
+            f"{name} fails to load and is not supported on {selenium_standalone.browser}."
         )
+
 
     selenium_standalone.run("import glob, os, site")
 
@@ -70,7 +70,7 @@ def test_import(name, selenium_standalone):
         """
     )
     for import_name in meta.get("test", {}).get("imports", []):
-        selenium_standalone.run_async("import %s" % import_name)
+        selenium_standalone.run_async(f"import {import_name}")
         # Make sure that even after importing, there are no additional .pyc
         # files
         assert (

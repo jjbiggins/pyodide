@@ -10,5 +10,4 @@ def create_grid(x):
     z = np.zeros((N, N, 3))
     z[:, :, 0] = x.reshape(-1, 1)
     z[:, :, 1] = x
-    fast_grid = z.reshape(N * N, 3)
-    return fast_grid
+    return z.reshape(N * N, 3)

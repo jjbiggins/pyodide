@@ -24,7 +24,7 @@ class FigureCanvasWasm(FigureCanvasBase):
         super().__init__(*args, **kwargs)
 
         self._idle_scheduled = False
-        self._id = "matplotlib_" + hex(id(self))[2:]
+        self._id = f"matplotlib_{hex(id(self))[2:]}"
         self._title = ""
         self._ratio = 1
         matplotlib_figure_styles = self._add_matplotlib_styles()
@@ -328,18 +328,14 @@ class FigureCanvasWasm(FigureCanvasBase):
                 value = value.lower()
             else:
                 shift = False
-        # number keys
         elif 48 <= code <= 57:
             if shift:
                 value = ")!@#$%^&*("[int(value)]
                 shift = False
-        # function keys
         elif 112 <= code <= 123:
-            value = "f%s" % (code - 111)
-        # number pad keys
+            value = f"f{code - 111}"
         elif 96 <= code <= 105:
-            value = "%s" % (code - 96)
-        # keys with shift alternatives
+            value = f"{code - 96}"
         elif code in self._SHIFT_LUT and shift:
             value = self._SHIFT_LUT[code]
             shift = False

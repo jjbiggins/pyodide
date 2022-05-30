@@ -173,7 +173,7 @@ def get_make_environment_vars():
     for line in result.stdout.splitlines():
         equalPos = line.find("=")
         if equalPos != -1:
-            varname = line[0:equalPos]
+            varname = line[:equalPos]
             value = line[equalPos + 1 :]
             value = value.strip("'").strip()
             environment[varname] = value

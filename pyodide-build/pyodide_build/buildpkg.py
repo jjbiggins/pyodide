@@ -182,9 +182,9 @@ def check_checksum(archive: Path, source_metadata: dict[str, Any]) -> None:
         return
     elif len(checksum_keys) != 1:
         raise ValueError(
-            "Only one checksum should be included in a package "
-            "setup; found {}.".format(checksum_keys)
+            f"Only one checksum should be included in a package setup; found {checksum_keys}."
         )
+
     checksum_algorithm = checksum_keys.pop()
     checksum = source_metadata[checksum_algorithm]
     CHUNK_SIZE = 1 << 16
@@ -200,20 +200,24 @@ def check_checksum(archive: Path, source_metadata: dict[str, Any]) -> None:
 
 
 def trim_archive_extension(tarballname):
-    for extension in [
-        ".tar.gz",
-        ".tgz",
-        ".tar",
-        ".tar.bz2",
-        ".tbz2",
-        ".tar.xz",
-        ".txz",
-        ".zip",
-        ".whl",
-    ]:
-        if tarballname.endswith(extension):
-            return tarballname[: -len(extension)]
-    return tarballname
+    return next(
+        (
+            tarballname[: -len(extension)]
+            for extension in [
+                ".tar.gz",
+                ".tgz",
+                ".tar",
+                ".tar.bz2",
+                ".tbz2",
+                ".tar.xz",
+                ".txz",
+                ".zip",
+                ".whl",
+            ]
+            if tarballname.endswith(extension)
+        ),
+        tarballname,
+    )
 
 
 def download_and_extract(
@@ -518,9 +522,8 @@ def package_wheel(
     # to maximize sanity.
     replace_so_abi_tags(wheel_dir)
 
-    post = build_metadata.get("post")
-    if post:
-        print("Running post script in ", str(Path.cwd().absolute()))
+    if post := build_metadata.get("post"):
+        print("Running post script in ", Path.cwd().absolute())
         bash_runner.env.update({"PKGDIR": str(pkg_root), "WHEELDIR": str(wheel_dir)})
         result = bash_runner.run(post)
         if result.returncode != 0:
@@ -677,8 +680,7 @@ def needs_rebuild(
             pkg_root / patch_path
             for [patch_path, _] in source_metadata.get("extras", [])
         )
-        src_path = source_metadata.get("path")
-        if src_path:
+        if src_path := source_metadata.get("path"):
             yield from (pkg_root / src_path).resolve().glob("**/*")
 
     for source_file in source_files():
@@ -773,16 +775,16 @@ def build_package(
             create_packaged_token(build_dir)
             return
 
-        if not sharedlibrary and not finished_wheel:
-            compile(
-                name,
-                srcpath,
-                build_metadata,
-                bash_runner,
-                target_install_dir=target_install_dir,
-                host_install_dir=host_install_dir,
-            )
         if not sharedlibrary:
+            if not finished_wheel:
+                compile(
+                    name,
+                    srcpath,
+                    build_metadata,
+                    bash_runner,
+                    target_install_dir=target_install_dir,
+                    host_install_dir=host_install_dir,
+                )
             package_wheel(
                 name, pkg_root, srcpath, build_metadata, bash_runner, host_install_dir
             )
@@ -889,7 +891,7 @@ def main(args):
 
     name = pkg["package"]["name"]
     t0 = datetime.now()
-    print("[{}] Building package {}...".format(t0.strftime("%Y-%m-%d %H:%M:%S"), name))
+    print(f'[{t0.strftime("%Y-%m-%d %H:%M:%S")}] Building package {name}...')
     success = True
     try:
         build_package(
@@ -906,7 +908,7 @@ def main(args):
         raise
     finally:
         t1 = datetime.now()
-        datestamp = "[{}]".format(t1.strftime("%Y-%m-%d %H:%M:%S"))
+        datestamp = f'[{t1.strftime("%Y-%m-%d %H:%M:%S")}]'
         total_seconds = f"{(t1 - t0).total_seconds():.1f}"
         status = "Succeeded" if success else "Failed"
         print(

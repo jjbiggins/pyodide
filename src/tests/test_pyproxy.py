@@ -31,7 +31,7 @@ def test_pyproxy_class(selenium):
         f.destroy();
         """
     )
-    assert {
+    assert not {
         "__class__",
         "__delattr__",
         "__dict__",
@@ -61,7 +61,7 @@ def test_pyproxy_class(selenium):
         "bar",
         "baz",
         "get_value",
-    }.difference(selenium.run_js("return f_props")) == set()
+    }.difference(selenium.run_js("return f_props"))
 
 
 def test_del_builtin(selenium):
@@ -368,7 +368,7 @@ def test_pyproxy_get_buffer_type_argument(selenium, array_type):
         assert check
         if fmt.lower() == "q":
             assert result == [hex(x).replace("0x", "") for x in list(mv.cast(fmt))]
-        elif fmt == "f" or fmt == "d":
+        elif fmt in ["f", "d"]:
             from math import isclose
 
             for a, b in zip(result, list(mv.cast(fmt))):

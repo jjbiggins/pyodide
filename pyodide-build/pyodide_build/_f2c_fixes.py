@@ -176,8 +176,7 @@ def char1_args_to_int(lines):
     ]
     fncnames = []
     for c in "cdsz":
-        for stem in fncstems:
-            fncnames.append(c + stem)
+        fncnames.extend(c + stem for stem in fncstems)
     fncnames += ["lsame"]
 
     funcs_pattern = "|".join(fncnames)
@@ -305,7 +304,7 @@ def add_externs_to_structs(lines: list[str]) -> None:
     """
     for idx, line in enumerate(lines):
         if line.startswith("struct"):
-            lines[idx] = "extern " + lines[idx]
+            lines[idx] = f"extern {lines[idx]}"
 
 
 def regroup_lines(lines: Iterable[str]) -> Iterator[str]:
@@ -348,7 +347,7 @@ def regroup_lines(lines: Iterable[str]) -> Iterator[str]:
         if is_definition:
             yield joined_line
         else:
-            yield from (x + ";" for x in joined_line.split(";")[:-1])
+            yield from (f"{x};" for x in joined_line.split(";")[:-1])
 
 
 def fix_inconsistent_decls(lines: list[str]) -> list[str]:
@@ -414,7 +413,7 @@ def fix_inconsistent_decls(lines: list[str]) -> list[str]:
             if func_name not in func_types or types == func_types[func_name]:
                 continue
             types = func_types[func_name]
-            l = list(line.partition(func_name + "("))
+            l = list(line.partition(f"{func_name}("))
             l[2:] = list(l[2].partition(")"))
             l[2] = ", ".join(types)
             line = "".join(l)

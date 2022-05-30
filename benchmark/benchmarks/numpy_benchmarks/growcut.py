@@ -7,17 +7,11 @@ import math
 
 
 def window_floor(idx, radius):
-    if radius > idx:
-        return 0
-    else:
-        return idx - radius
+    return 0 if radius > idx else idx - radius
 
 
 def window_ceil(idx, ceil, radius):
-    if idx + radius > ceil:
-        return ceil
-    else:
-        return idx + radius
+    return ceil if idx + radius > ceil else idx + radius
 
 
 def growcut(image, state, state_next, window_radius):

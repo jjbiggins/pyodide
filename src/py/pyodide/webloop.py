@@ -308,14 +308,12 @@ class WebLoop(asyncio.AbstractEventLoop):
             if key in {"message", "exception"}:
                 continue
             value = context[key]
-            if key == "source_traceback":
+            if key == "handle_traceback":
                 tb = "".join(traceback.format_list(value))
-                value = "Object created at (most recent call last):\n"
-                value += tb.rstrip()
-            elif key == "handle_traceback":
+                value = "Handle created at (most recent call last):\n" + tb.rstrip()
+            elif key == "source_traceback":
                 tb = "".join(traceback.format_list(value))
-                value = "Handle created at (most recent call last):\n"
-                value += tb.rstrip()
+                value = "Object created at (most recent call last):\n" + tb.rstrip()
             else:
                 value = repr(value)
             log_lines.append(f"{key}: {value}")
@@ -391,9 +389,7 @@ class WebLoopPolicy(asyncio.DefaultEventLoopPolicy):
 
     def get_event_loop(self):
         """Get the current event loop"""
-        if self._default_loop:
-            return self._default_loop
-        return self.new_event_loop()
+        return self._default_loop or self.new_event_loop()
 
     def new_event_loop(self) -> WebLoop:
         """Create a new event loop"""

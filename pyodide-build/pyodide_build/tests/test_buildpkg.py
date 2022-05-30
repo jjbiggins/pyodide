@@ -41,9 +41,8 @@ def test_prepare_source(monkeypatch):
     monkeypatch.setattr(shutil, "unpack_archive", lambda *args, **kwargs: True)
     monkeypatch.setattr(shutil, "move", lambda *args, **kwargs: True)
 
-    test_pkgs = []
+    test_pkgs = [parse_package_config(PACKAGES_DIR / "packaging/meta.yaml")]
 
-    test_pkgs.append(parse_package_config(PACKAGES_DIR / "packaging/meta.yaml"))
     test_pkgs.append(parse_package_config(PACKAGES_DIR / "micropip/meta.yaml"))
 
     for pkg in test_pkgs:
@@ -92,12 +91,7 @@ def test_unvendor_tests(tmpdir):
     def rlist(input_dir):
         """Recursively list files in input_dir"""
         paths = list(sorted(input_dir.rglob("*")))
-        res = []
-
-        for el in paths:
-            if el.is_file():
-                res.append(str(el.relative_to(input_dir)))
-        return res
+        return [str(el.relative_to(input_dir)) for el in paths if el.is_file()]
 
     install_prefix = Path(str(tmpdir / "install"))
     test_install_prefix = Path(str(tmpdir / "install-tests"))

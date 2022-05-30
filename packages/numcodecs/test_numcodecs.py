@@ -23,10 +23,7 @@ def test_blosc(selenium_standalone):
         res = ensure_ndarray(res).view(arr.dtype)
 
         # convert to correct shape
-        if arr.flags.f_contiguous:
-            order = "F"
-        else:
-            order = "C"
+        order = "F" if arr.flags.f_contiguous else "C"
         res = res.reshape(arr.shape, order=order)
 
         # exact compare

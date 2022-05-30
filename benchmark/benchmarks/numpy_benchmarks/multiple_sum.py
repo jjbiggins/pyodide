@@ -12,7 +12,7 @@ def multiple_sum(array):
 
     out = np.zeros((rows, cols))
 
-    for row in range(0, rows):
+    for row in range(rows):
         out[row, :] = np.sum(array - array[row, :], 0)
 
     return out

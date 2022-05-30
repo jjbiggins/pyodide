@@ -28,10 +28,10 @@ def generate_largish_json(n_rows: int = 91746) -> dict[str, Any]:
         ("column6", lambda: random.randint(0, 4)),
         ("column7", lambda: random.randint(0, 4)),
     ]
-    data = {}
-    for name, generator in columns:
-        data[name] = [generator() for _ in range(n_rows)]
-    return data
+    return {
+        name: [generator() for _ in range(n_rows)]
+        for name, generator in columns
+    }
 
 
 @pytest.mark.driver_timeout(30)

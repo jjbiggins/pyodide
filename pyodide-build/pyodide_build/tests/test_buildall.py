@@ -26,7 +26,7 @@ def test_generate_dependency_graph():
 def test_generate_packages_json(tmp_path):
     pkg_map = buildall.generate_dependency_graph(PACKAGES_DIR, {"pkg_1", "pkg_2"})
     for pkg in pkg_map.values():
-        pkg.file_name = pkg.file_name or pkg.name + ".file"
+        pkg.file_name = pkg.file_name or f"{pkg.name}.file"
         # Write dummy package file for SHA-256 hash verification
         with open(tmp_path / pkg.file_name, "w") as f:
             f.write(pkg.name)

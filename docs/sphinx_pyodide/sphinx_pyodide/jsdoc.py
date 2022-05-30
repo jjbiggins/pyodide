@@ -52,14 +52,13 @@ def destructure_param(param: dict[str, Any]) -> list[dict[str, Any]]:
     for child in decl["children"]:
         child = dict(child)
         if "type" not in child:
-            if "signatures" in child:
-                child["comment"] = child["signatures"][0]["comment"]
-                child["type"] = {
-                    "type": "reflection",
-                    "declaration": dict(child),
-                }
-            else:
+            if "signatures" not in child:
                 raise AssertionError("Didn't expect to get here...")
+            child["comment"] = child["signatures"][0]["comment"]
+            child["type"] = {
+                "type": "reflection",
+                "declaration": dict(child),
+            }
         child["name"] = param["name"] + "." + child["name"]
         result.append(child)
     return result
@@ -351,9 +350,7 @@ def get_jsdoc_content_directive(app):
             """Grab the appropriate renderer and render us to rst."""
             if isinstance(obj, Function):
                 renderer = AutoFunctionRenderer
-            elif isinstance(obj, Class):
-                renderer = AutoClassRenderer
-            elif isinstance(obj, Interface):
+            elif isinstance(obj, (Class, Interface)):
                 renderer = AutoClassRenderer
             else:
                 renderer = AutoAttributeRenderer
@@ -388,10 +385,8 @@ def get_jsdoc_content_directive(app):
         def run(self):
             module = self.arguments[0]
             values = app._sphinxjs_analyzer.js_docs[module]
-            rst = []
-            rst.append([f".. js:module:: {module}"])
-            for group in values.values():
-                rst.append(self.get_rst_for_group(group))
+            rst = [[f".. js:module:: {module}"]]
+            rst.extend(self.get_rst_for_group(group) for group in values.values())
             joined_rst = "\n\n".join(["\n\n".join(r) for r in rst])
             return self.parse_rst(joined_rst)
 
@@ -417,7 +412,7 @@ def get_jsdoc_summary_directive(app):
                 if group_name == "class":
                     # Plural of class is "classes" not "classs"
                     group_name += "e"
-                result.append(self.format_heading(group_name.title() + "s:"))
+                result.append(self.format_heading(f"{group_name.title()}s:"))
                 table_items = self.get_summary_table(module, group_objects)
                 table_markup = self.format_table(table_items)
                 result.extend(table_markup)
@@ -465,7 +460,7 @@ def get_jsdoc_summary_directive(app):
             display_name = obj.name
             prefix = "*async* " if obj.async_ else ""
             summary = self.extract_summary(obj.description)
-            link_name = pkgname + "." + display_name
+            link_name = f"{pkgname}.{display_name}"
             return (prefix, display_name, sig, summary, link_name)
 
         def get_summary_table(self, pkgname, group):

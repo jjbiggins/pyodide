@@ -150,20 +150,17 @@ def test_selenium(selenium):
 
 @run_in_pyodide
 def test_trivial1(selenium):
-    x = 7
-    assert x == 7
+    pass
 
 
 @run_in_pyodide()
 def test_trivial2(selenium):
-    x = 7
-    assert x == 7
+    pass
 
 
 @run_in_pyodide(pytest_assert_rewrites=False)
 def test_trivial3(selenium):
-    x = 7
-    assert x == 7
+    pass
 
 
 @pytest.mark.parametrize("jinja2", ["jINja2", "Jinja2"])
@@ -186,9 +183,7 @@ def test_skip(selenium):
 async def test_run_in_pyodide_async(selenium):
     from asyncio import sleep
 
-    x = 6
     await sleep(0.01)
-    assert x == 6
 
 
 @pytest.mark.skip_refcount_check

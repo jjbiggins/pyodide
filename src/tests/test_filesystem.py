@@ -10,11 +10,7 @@ import pytest
 def test_idbfs_persist_code(selenium_standalone):
     """can we persist files created by user python code?"""
     selenium = selenium_standalone
-    if selenium.browser == "node":
-        fstype = "NODEFS"
-    else:
-        fstype = "IDBFS"
-
+    fstype = "NODEFS" if selenium.browser == "node" else "IDBFS"
     mount_dir = "/mount_test"
     # create mount
     selenium.run_js(

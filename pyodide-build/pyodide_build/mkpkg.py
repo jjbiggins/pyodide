@@ -54,23 +54,28 @@ SDIST_EXTENSIONS = tuple(
 
 def _find_sdist(pypi_metadata: MetadataDict) -> URLDict | None:
     """Get sdist file path from the metadata"""
-    # The first one we can use. Usually a .tar.gz
-    for entry in pypi_metadata["urls"]:
-        if entry["packagetype"] == "sdist" and entry["filename"].endswith(
-            SDIST_EXTENSIONS
-        ):
-            return entry
-    return None
+    return next(
+        (
+            entry
+            for entry in pypi_metadata["urls"]
+            if entry["packagetype"] == "sdist"
+            and entry["filename"].endswith(SDIST_EXTENSIONS)
+        ),
+        None,
+    )
 
 
 def _find_wheel(pypi_metadata: MetadataDict) -> URLDict | None:
     """Get wheel file path from the metadata"""
-    for entry in pypi_metadata["urls"]:
-        if entry["packagetype"] == "bdist_wheel" and entry["filename"].endswith(
-            "py3-none-any.whl"
-        ):
-            return entry
-    return None
+    return next(
+        (
+            entry
+            for entry in pypi_metadata["urls"]
+            if entry["packagetype"] == "bdist_wheel"
+            and entry["filename"].endswith("py3-none-any.whl")
+        ),
+        None,
+    )
 
 
 def _find_dist(
@@ -100,7 +105,7 @@ def _find_dist(
 
 def _get_metadata(package: str, version: str | None = None) -> MetadataDict:
     """Download metadata for a package from PyPI"""
-    version = ("/" + version) if version is not None else ""
+    version = f"/{version}" if version is not None else ""
     url = f"https://pypi.org/pypi/{package}{version}/json"
 
     try:
@@ -135,11 +140,7 @@ def make_package(
 
     pypi_metadata = _get_metadata(package, version)
 
-    if source_fmt:
-        sources = [source_fmt]
-    else:
-        # Prefer wheel unless sdist is specifically requested.
-        sources = ["wheel", "sdist"]
+    sources = [source_fmt] if source_fmt else ["wheel", "sdist"]
     dist_metadata = _find_dist(pypi_metadata, sources)
 
     url = dist_metadata["url"]
@@ -149,7 +150,7 @@ def make_package(
     homepage = pypi_metadata["info"]["home_page"]
     summary = pypi_metadata["info"]["summary"]
     license = pypi_metadata["info"]["license"]
-    pypi = "https://pypi.org/project/" + package
+    pypi = f"https://pypi.org/project/{package}"
 
     yaml_content = {
         "package": {"name": package, "version": version},
@@ -228,11 +229,7 @@ def update_package(
     if build_info.get("library", False) or build_info.get("sharedlibrary", False):
         raise MkpkgFailedException(f"Skipping: {package} is a library!")
 
-    if yaml_content["source"]["url"].endswith("whl"):
-        old_fmt = "wheel"
-    else:
-        old_fmt = "sdist"
-
+    old_fmt = "wheel" if yaml_content["source"]["url"].endswith("whl") else "sdist"
     pypi_metadata = _get_metadata(package, version)
     pypi_ver = pypi_metadata["info"]["version"]
     local_ver = yaml_content["package"]["version"]

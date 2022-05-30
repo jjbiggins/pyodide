@@ -248,7 +248,7 @@ def test_install_custom_url(selenium_standalone_micropip, base_url):
     with spawn_web_server(Path(__file__).parent / "test") as server:
         server_hostname, server_port, _ = server
         base_url = f"http://{server_hostname}:{server_port}/"
-        url = base_url + "snowballstemmer-2.0.0-py2.py3-none-any.whl"
+        url = f"{base_url}snowballstemmer-2.0.0-py2.py3-none-any.whl"
 
         selenium.run_js(
             f"""
@@ -286,7 +286,7 @@ async def test_add_requirement():
     with spawn_web_server(Path(__file__).parent / "test") as server:
         server_hostname, server_port, _ = server
         base_url = f"http://{server_hostname}:{server_port}/"
-        url = base_url + "snowballstemmer-2.0.0-py2.py3-none-any.whl"
+        url = f"{base_url}snowballstemmer-2.0.0-py2.py3-none-any.whl"
 
         transaction = create_transaction(Transaction)
         await transaction.add_requirement(url)

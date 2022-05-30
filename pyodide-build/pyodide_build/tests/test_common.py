@@ -104,8 +104,10 @@ def test_wheel_paths():
         "py2.py3",
     ]:
         for abi in [interp, "abi3", "none"]:
-            for arch in [PLATFORM, "linux_x86_64", "any"]:
-                strings.append(f"wrapt-1.13.3-{interp}-{abi}-{arch}.whl")
+            strings.extend(
+                f"wrapt-1.13.3-{interp}-{abi}-{arch}.whl"
+                for arch in [PLATFORM, "linux_x86_64", "any"]
+            )
 
     paths = [Path(x) for x in strings]
     assert [x.stem.split("-", 2)[-1] for x in find_matching_wheels(paths)] == [

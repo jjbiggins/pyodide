@@ -113,16 +113,7 @@ def _create_outer_test_function(
 
 class run_in_pyodide:
     def __new__(cls, function: Callable | None = None, /, **kwargs):
-        if function:
-            # Probably we were used like:
-            #
-            # @run_in_pyodide
-            # def f():
-            #   pass
-            return run_in_pyodide(**kwargs)(function)
-        else:
-            # Just do normal __new__ behavior
-            return object.__new__(cls)
+        return run_in_pyodide(**kwargs)(function) if function else object.__new__(cls)
 
     def __init__(
         self,
@@ -288,6 +279,4 @@ class run_in_pyodide:
         self._func_name = func_name
         self._module_filename = module_filename
 
-        wrapper = _create_outer_test_function(self._run_test, self._node)
-
-        return wrapper
+        return _create_outer_test_function(self._run_test, self._node)

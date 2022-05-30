@@ -31,10 +31,7 @@ def _args_wrapper(func):
     def _inner(line, *pargs):
         args = line.split()
         res = func(args, *pargs, dryrun=True)
-        if hasattr(res, "__len__"):
-            return " ".join(res)
-        else:
-            return res
+        return " ".join(res) if hasattr(res, "__len__") else res
 
     return _inner
 

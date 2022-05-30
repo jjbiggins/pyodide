@@ -15,7 +15,7 @@ def create_pkg_directory():
         version = []
         for s in ("MAJOR", "MINOR", "BUGFIX"):
             m = re.search(f"NLOPT_{s}_VERSION *['\"](.+)['\"]", content)
-            version.append(m.group(1))
+            version.append(m[1])
         version = ".".join(version)
 
     pkg_folder = Path("nlopt")

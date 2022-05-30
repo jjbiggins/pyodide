@@ -62,7 +62,7 @@ def pkg_resources_distribution_for_wheel(wheel_zip, name, location):
         try:
             metadata_text[metadata_name] = read_wheel_metadata_file(wheel_zip, path)
         except UnsupportedWheel as e:
-            raise UnsupportedWheel("{} has an invalid wheel, {}".format(name, str(e)))
+            raise UnsupportedWheel(f"{name} has an invalid wheel, {str(e)}")
 
     metadata = WheelMetadata(metadata_text, location)
 
@@ -81,7 +81,7 @@ def parse_wheel(wheel_zip, name):
         metadata = wheel_metadata(wheel_zip, info_dir)
         version = wheel_version(metadata)
     except UnsupportedWheel as e:
-        raise UnsupportedWheel("{} has an invalid wheel, {}".format(name, str(e)))
+        raise UnsupportedWheel(f"{name} has an invalid wheel, {str(e)}")
 
     check_compatibility(version, name)
 
@@ -105,8 +105,9 @@ def wheel_dist_info_dir(source, name):
 
     if len(info_dirs) > 1:
         raise UnsupportedWheel(
-            "multiple .dist-info directories found: {}".format(", ".join(info_dirs))
+            f'multiple .dist-info directories found: {", ".join(info_dirs)}'
         )
+
 
     info_dir = info_dirs[0]
 
@@ -184,9 +185,9 @@ def check_compatibility(version, name):
     """
     if version[0] > VERSION_COMPATIBLE[0]:
         raise UnsupportedWheel(
-            "{}'s Wheel-Version ({}) is not compatible with this version "
-            "of pip".format(name, ".".join(map(str, version)))
+            f"""{name}'s Wheel-Version ({".".join(map(str, version))}) is not compatible with this version of pip"""
         )
+
     elif version > VERSION_COMPATIBLE:
         logger.warning(
             "Installing from a newer Wheel-Version (%s)",

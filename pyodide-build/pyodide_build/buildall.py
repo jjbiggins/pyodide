@@ -254,10 +254,7 @@ def generate_dependency_graph(
 
 
 def job_priority(pkg: BasePackage) -> int:
-    if pkg.name == "numpy":
-        return 0
-    else:
-        return 1
+    return 0 if pkg.name == "numpy" else 1
 
 
 def print_with_progress_line(str: str, progress_line: str | None) -> None:
@@ -272,9 +269,7 @@ def print_with_progress_line(str: str, progress_line: str | None) -> None:
 
 
 def get_progress_line(package_set: dict[str, None]) -> str | None:
-    if not package_set:
-        return None
-    return "In progress: " + ", ".join(package_set.keys())
+    return "In progress: " + ", ".join(package_set.keys()) if package_set else None
 
 
 def format_name_list(l: list[str]) -> str:
@@ -290,7 +285,7 @@ def format_name_list(l: list[str]) -> str:
         return l[0]
     most = l[:-1]
     if len(most) > 1:
-        most = [x + "," for x in most]
+        most = [f"{x}," for x in most]
     return " ".join(most) + " and " + l[-1]
 
 
@@ -491,7 +486,7 @@ def generate_packages_json(
 
             # Create the test package if necessary
             pkg_entry = {
-                "name": name + "-tests",
+                "name": f"{name}-tests",
                 "version": pkg.version,
                 "depends": [name.lower()],
                 "imports": [],
@@ -501,7 +496,8 @@ def generate_packages_json(
                     Path(output_dir, pkg.unvendored_tests.name)
                 ),
             }
-            package_data["packages"][name.lower() + "-tests"] = pkg_entry
+
+            package_data["packages"][f"{name.lower()}-tests"] = pkg_entry
 
     # Workaround for circular dependency between soupsieve and beautifulsoup4
     # TODO: FIXME!!
@@ -521,8 +517,7 @@ def copy_packages_to_dist_dir(packages, output_dir):
         except RuntimeError:
             pass
 
-        test_path = pkg.tests_path()
-        if test_path:
+        if test_path := pkg.tests_path():
             shutil.copy(test_path, output_dir)
 
 
@@ -538,7 +533,7 @@ def build_packages(
         if pkg.library:
             continue
         if isinstance(pkg, StdLibPackage):
-            pkg.file_name = pkg.name + ".tar"
+            pkg.file_name = f"{pkg.name}.tar"
             continue
         if pkg.needs_rebuild():
             continue

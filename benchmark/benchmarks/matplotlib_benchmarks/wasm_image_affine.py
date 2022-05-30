@@ -19,8 +19,7 @@ def wasm_image_affine():
         X, Y = np.meshgrid(x, y)
         Z1 = np.exp(-(X**2) - Y**2)
         Z2 = np.exp(-((X - 1) ** 2) - (Y - 1) ** 2)
-        Z = Z1 - Z2
-        return Z
+        return Z1 - Z2
 
     def do_plot(ax, Z, transform):
         im = ax.imshow(

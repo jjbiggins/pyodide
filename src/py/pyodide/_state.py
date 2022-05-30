@@ -16,10 +16,11 @@ def save_state() -> dict[str, Any]:
     ``__main__.__dict__``. Many loaded modules might have global state, but
     there is no general way to track it and we don't try to.
     """
-    loaded_js_modules = {}
-    for [key, value] in sys.modules.items():
-        if isinstance(value, JsProxy):
-            loaded_js_modules[key] = value
+    loaded_js_modules = {
+        key: value
+        for [key, value] in sys.modules.items()
+        if isinstance(value, JsProxy)
+    }
 
     return dict(
         globals=dict(__main__.__dict__),

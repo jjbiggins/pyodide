@@ -269,9 +269,8 @@ class SeleniumWrapper:
         retval = self.driver.execute_async_script(wrapper % (code, check_code))
         if retval[0] == 0:
             return retval[1]
-        else:
-            print("JavascriptException message: ", retval[3])
-            raise JavascriptException(retval[1], retval[2])
+        print("JavascriptException message: ", retval[3])
+        raise JavascriptException(retval[1], retval[2])
 
     def get_num_hiwire_keys(self):
         return self.run_js("return pyodide._module.hiwire.num_keys();")

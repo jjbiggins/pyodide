@@ -127,10 +127,9 @@ class NavigationToolbar2HTMLCanvas(NavigationToolbar2Wasm):
 
         element.setAttribute(
             "href",
-            "data:{};base64,{}".format(
-                mimetype, base64.b64encode(data.getvalue()).decode("ascii")
-            ),
+            f'data:{mimetype};base64,{base64.b64encode(data.getvalue()).decode("ascii")}',
         )
+
         element.setAttribute("download", f"plot.{format}")
         element.style.display = "none"
 
@@ -149,11 +148,10 @@ class GraphicsContextHTMLCanvas(GraphicsContextBase):
         self.renderer.ctx.restore()
 
     def set_capstyle(self, cs):
-        if cs in ["butt", "round", "projecting"]:
-            self._capstyle = cs
-            self.renderer.ctx.lineCap = _capstyle_d[cs]
-        else:
+        if cs not in ["butt", "round", "projecting"]:
             raise ValueError(f"Unrecognized cap style. Found {cs}")
+        self._capstyle = cs
+        self.renderer.ctx.lineCap = _capstyle_d[cs]
 
     def set_clip_rectangle(self, rectangle):
         self.renderer.ctx.save()
@@ -187,11 +185,10 @@ class GraphicsContextHTMLCanvas(GraphicsContextBase):
             self.renderer.ctx.setLineDash(dl)
 
     def set_joinstyle(self, js):
-        if js in ["miter", "round", "bevel"]:
-            self._joinstyle = js
-            self.renderer.ctx.lineJoin = js
-        else:
+        if js not in ["miter", "round", "bevel"]:
             raise ValueError(f"Unrecognized join style. Found {js}")
+        self._joinstyle = js
+        self.renderer.ctx.lineJoin = js
 
     def set_linewidth(self, w):
         self.stroke = w != 0
@@ -230,20 +227,16 @@ class RendererHTMLCanvas(RendererBase):
             alpha = color[3]
 
         if alpha is None:
-            CSS_color = rgb2hex(color[:3])
+            return rgb2hex(color[:3])
 
-        else:
-            R = int(color[0] * 255)
-            G = int(color[1] * 255)
-            B = int(color[2] * 255)
-            if len(color) == 3 or alpha_overrides:
-                CSS_color = f"""rgba({R:d}, {G:d}, {B:d}, {alpha:.3g})"""
-            else:
-                CSS_color = """rgba({:d}, {:d}, {:d}, {:.3g})""".format(
-                    R, G, B, color[3]
-                )
-
-        return CSS_color
+        R = int(color[0] * 255)
+        G = int(color[1] * 255)
+        B = int(color[2] * 255)
+        return (
+            f"""rgba({R:d}, {G:d}, {B:d}, {alpha:.3g})"""
+            if len(color) == 3 or alpha_overrides
+            else """rgba({:d}, {:d}, {:d}, {:.3g})""".format(R, G, B, color[3])
+        )
 
     def _set_style(self, gc, rgbFace=None):
         if rgbFace is not None:

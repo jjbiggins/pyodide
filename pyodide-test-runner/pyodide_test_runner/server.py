@@ -71,12 +71,10 @@ def run_web_server(q, log_filepath, dist_dir):
         q.put(port)
 
         def service_actions():
-            try:
+            with contextlib.suppress(queue.Empty):
                 if q.get(False) == "TERMINATE":
                     print("Stopping server...")
                     sys.exit(0)
-            except queue.Empty:
-                pass
 
         httpd.service_actions = service_actions  # type: ignore[assignment]
         httpd.serve_forever()

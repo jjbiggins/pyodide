@@ -69,10 +69,7 @@ def make_command_wrapper_symlinks(env: MutableMapping[str, str]) -> None:
             symlink_path.symlink_to(exec_path)
         except FileExistsError:
             pass
-        if symlink == "c++":
-            var = "CXX"
-        else:
-            var = symlink.upper()
+        var = "CXX" if symlink == "c++" else symlink.upper()
         env[var] = symlink
 
 
@@ -167,8 +164,8 @@ def replay_f2c(args: list[str], dryrun: bool = False) -> list[str] | None:
                     )
                     filepath = filepath.with_suffix(".f")
                 subprocess.check_call(["f2c", filepath.name], cwd=filepath.parent)
-                fix_f2c_output(arg[:-2] + ".c")
-            new_args.append(arg[:-2] + ".c")
+                fix_f2c_output(f"{arg[:-2]}.c")
+            new_args.append(f"{arg[:-2]}.c")
             found_source = True
         else:
             new_args.append(arg)
@@ -188,10 +185,14 @@ def get_library_output(line: list[str]) -> str | None:
     Check if the command is a linker invocation. If so, return the name of the
     output file.
     """
-    for arg in line:
-        if arg.endswith(".so") and not arg.startswith("-"):
-            return arg
-    return None
+    return next(
+        (
+            arg
+            for arg in line
+            if arg.endswith(".so") and not arg.startswith("-")
+        ),
+        None,
+    )
 
 
 def parse_replace_libs(replace_libs: str) -> dict[str, str]:
@@ -243,10 +244,10 @@ def replay_genargs_handle_dashl(
         The new argument, or None to delete the argument.
     """
     assert arg.startswith("-l")
-    for lib_name in replace_libs.keys():
+    for lib_name in replace_libs:
         # this enables glob style **/* matching
         if PurePosixPath(arg[2:]).match(lib_name):
-            arg = "-l" + replace_libs[lib_name]
+            arg = f"-l{replace_libs[lib_name]}"
 
     if arg == "-lffi":
         return None
@@ -281,10 +282,10 @@ def replay_genargs_handle_dashI(arg: str, target_install_dir: str) -> str | None
     """
     assert arg.startswith("-I")
     if (
-        str(Path(arg[2:]).resolve()).startswith(sys.prefix + "/include/python")
+        str(Path(arg[2:]).resolve()).startswith(f"{sys.prefix}/include/python")
         and "site-packages" not in arg
     ):
-        return arg.replace("-I" + sys.prefix, "-I" + target_install_dir)
+        return arg.replace(f"-I{sys.prefix}", f"-I{target_install_dir}")
     # Don't include any system directories
     if arg[2:].startswith("/usr"):
         return None
@@ -319,10 +320,7 @@ def replay_genargs_handle_linker_opts(arg):
         if opt.startswith("--version-script="):
             continue
         new_link_opts.append(opt)
-    if len(new_link_opts) > 1:
-        return ",".join(new_link_opts)
-    else:
-        return None
+    return ",".join(new_link_opts) if len(new_link_opts) > 1 else None
 
 
 def replay_genargs_handle_argument(arg: str) -> str | None:
@@ -347,22 +345,17 @@ def replay_genargs_handle_argument(arg: str) -> str | None:
         return None
 
     # fmt: off
-    if arg in [
-        # don't use -shared, SIDE_MODULE is already used
-        # and -shared breaks it
+    if arg in {
         "-shared",
-        # threading is disabled for now
         "-pthread",
-        # this only applies to compiling fortran code, but we already f2c'd
         "-ffixed-form",
-        # On Mac, we need to omit some darwin-specific arguments
-        "-bundle", "-undefined", "dynamic_lookup",
-        # This flag is needed to build numpy with SIMD optimization which we currently disable
+        "-bundle",
+        "-undefined",
+        "dynamic_lookup",
         "-mpopcnt",
-        # gcc flag that clang does not support
         "-Bsymbolic-functions",
         '-fno-second-underscore',
-    ]:
+    }:
         return None
     # fmt: on
     return arg
@@ -411,9 +404,9 @@ def handle_command_generate_args(
     if cmd == "ar":
         line[0] = "emar"
         return line
-    elif cmd == "c++" or cmd == "g++":
+    elif cmd in ["c++", "g++"]:
         new_args = ["em++"]
-    elif cmd == "cc" or cmd == "gcc" or cmd == "ld":
+    elif cmd in ["cc", "gcc", "ld"]:
         new_args = ["emcc"]
         # distutils doesn't use the c++ compiler when compiling c++ <sigh>
         if any(arg.endswith((".cpp", ".cc")) for arg in line):
@@ -444,20 +437,13 @@ def handle_command_generate_args(
         new_args.extend(["-I", args.pythoninclude])
 
     optflags_valid = [f"-O{tok}" for tok in "01234sz"]
-    optflag = None
-    # Identify the optflag (e.g. -O3) in cflags/cxxflags/ldflags. Last one has
-    # priority.
-    for arg in reversed(new_args):
-        if arg in optflags_valid:
-            optflag = arg
-            break
-    debugflag = None
-    # Identify the debug flag (e.g. -g0) in cflags/cxxflags/ldflags. Last one has
-    # priority.
-    for arg in reversed(new_args):
-        if arg.startswith("-g"):
-            debugflag = arg
-            break
+    optflag = next(
+        (arg for arg in reversed(new_args) if arg in optflags_valid), None
+    )
+
+    debugflag = next(
+        (arg for arg in reversed(new_args) if arg.startswith("-g")), None
+    )
 
     used_libs: set[str] = set()
     # Go through and adjust arguments
@@ -479,8 +465,8 @@ def handle_command_generate_args(
 
         # don't include libraries from native builds
         if args.host_install_dir and (
-            arg.startswith("-L" + args.host_install_dir)
-            or arg.startswith("-l" + args.host_install_dir)
+            arg.startswith(f"-L{args.host_install_dir}")
+            or arg.startswith(f"-l{args.host_install_dir}")
         ):
             continue
 

@@ -75,10 +75,9 @@ class NavigationToolbar2AggWasm(NavigationToolbar2Wasm):
             raise
         element.setAttribute(
             "href",
-            "data:{};base64,{}".format(
-                mimetype, base64.b64encode(data.getvalue()).decode("ascii")
-            ),
+            f'data:{mimetype};base64,{base64.b64encode(data.getvalue()).decode("ascii")}',
         )
+
         element.setAttribute("download", f"plot.{format}")
         element.style.display = "none"
         document.body.appendChild(element)
